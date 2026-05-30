@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
+import hudson.model.Run;
 import org.kohsuke.stapler.export.ExportedBean;
 
 public class JenkinsExportedBeanSerializerModifier extends BeanSerializerModifier {
@@ -39,6 +40,10 @@ public class JenkinsExportedBeanSerializerModifier extends BeanSerializerModifie
             SerializationConfig config, BeanDescription beanDesc, JsonSerializer<?> serializer) {
 
         if (beanDesc.getClassAnnotations().has(ExportedBean.class)) {
+            // Use custom serializer for Run objects to exclude artifacts
+            if (Run.class.isAssignableFrom(beanDesc.getBeanClass())) {
+                return new RunWithoutArtifactsSerializer();
+            }
             return new JenkinsExportedBeanSerializer();
         }
 

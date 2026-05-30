@@ -2,7 +2,7 @@
  *
  * The MIT License
  *
- * Copyright (c) 2025, Gong Yi.
+ * Copyright (c) 2025, Derek Taubert.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,33 +24,32 @@
  *
  */
 
-package io.jenkins.plugins.mcp.server.junit;
+package io.jenkins.plugins.mcp.server.extensions;
 
-import io.modelcontextprotocol.spec.McpSchema;
-import java.util.Arrays;
-import java.util.stream.Stream;
-import org.junit.jupiter.params.provider.Arguments;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class TestUtils {
+import org.junit.jupiter.api.Test;
 
-    public static final int MIN_1 = 60 * 1000;
+/**
+ * Simple compilation test to verify that our BuildArtifactsExtension compiles correctly.
+ * This test doesn't require the full Jenkins test harness.
+ */
+public class BuildArtifactsExtensionCompileTest {
 
-    public static Stream<Arguments> appendMcpClientArgs(Stream<Arguments> baseArgs) {
-        return baseArgs.flatMap(args -> Stream.of(
-                Arguments.of(append(args.get(), new JenkinsSSEMcpClientBuilder())),
-                Arguments.of(append(args.get(), new JenkinsStreamableMcpClientBuilder()))));
+    @Test
+    void testBuildArtifactsExtensionCanBeInstantiated() {
+        BuildArtifactsExtension extension = new BuildArtifactsExtension();
+        assertNotNull(extension);
     }
 
-    private static Object[] append(Object[] original, Object extra) {
-        Object[] combined = Arrays.copyOf(original, original.length + 1);
-        combined[original.length] = extra;
-        return combined;
-    }
+    @Test
+    void testBuildArtifactResponseRecord() {
+        BuildArtifactsExtension.BuildArtifactResponse response =
+                new BuildArtifactsExtension.BuildArtifactResponse(false, 100L, "test content");
 
-    public static McpSchema.Tool findToolByName(McpSchema.ListToolsResult listToolsResult, String name) {
-        return listToolsResult.tools().stream()
-                .filter(tool -> name.equals(tool.name()))
-                .findFirst()
-                .orElse(null);
+        assertNotNull(response);
+        assert !response.hasMoreContent();
+        assert response.totalSize() == 100L;
+        assert "test content".equals(response.content());
     }
 }
